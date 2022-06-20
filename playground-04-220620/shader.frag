@@ -21,7 +21,11 @@ void main() {
     vec2 uv = gl_FragCoord.xy / u_resolution;
     vec2 mouse = u_mouse / u_resolution;
 
-    vec3 color = vec3(rect((uv - vec2(0.5)) / (mouse - 0.5), mouse.x));
+    uv = uv - mouse + 0.5;
+
+    float rect = rect(uv, sin(mouse.x * 3.14));
+
+    vec3 color = vec3(mouse.x + uv.x, mouse.y, abs(sin(u_time * 2.0))) * vec3(rect);
 
     gl_FragColor = vec4(color,1.0);
 }
