@@ -29,12 +29,15 @@ void main() {
     vec2 p = gl_FragCoord.xy / u_resolution;
     vec2 mouse = u_mouse / u_resolution;
 
-    float rect1 = rect(p, vec2(mouse.x * 0.5, 0.2), vec2(mouse.x, 1.0 - mouse.y));
-    float rect2 = rect(p, vec2(0.2, mouse.y * 0.5), vec2(mouse.y, 1.0 - mouse.x));
+    vec3 color = vec3(0.0);
 
-    vec3 color = mix(vec3(0.0, 0.2, 1.0), vec3(0.2, 1.0, 0.4), p.x);
-    
-    color = min(color, rect1 + rect2);
+    for(float i = 0.0; i < 10.0; i++) {
+        for(float j = 0.0; j < 10.0; j++) {
+            color += vec3(rect(p, vec2(abs(sin(u_time)) * 0.1), vec2(i / 10.0, j / 10.0)));
+        }
+    }
+
+    color *= mix(vec3(p.x, p.y, mouse.y), vec3(p.y, p.x, mouse.y), p.y);
 
     gl_FragColor = vec4(color,1.0);
 }
