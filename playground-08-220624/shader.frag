@@ -2,42 +2,54 @@
 precision mediump float;
 #endif
 
+uniform sampler2D u_buffer0;
+uniform sampler2D u_buffer1;
+
 uniform vec2 u_resolution;
 uniform vec2 u_mouse;
 uniform float u_time;
 
-float rect(vec2 uv, vec2 s, vec2 pos) {
 
-    vec2 p = uv;
-
-    p.x = p.x - pos.x + 0.5 - s.x * 0.5;
-    p.y = p.y + pos.y - 0.5 + s.y * 0.5;
-
-    float left = step(0.5 - s.x * 0.5, p.x);
-    float right = step(0.5 - s.x * 0.5, 1.0 - p.x);
-    float top = step(0.5 - s.y * 0.5, 1.0 - p.y);
-    float bottom = step(0.5 - s.y * 0.5, p.y);
-
-    float rect = left * right * top * bottom;
-
-    return rect;
+float circle(vec2 uv, vec2 pos) {
+    float circle = 1.0 - smoothstep(0.0, 0.2, length(uv - pos));
+    return circle;
 }
 
+#if defined(BUFFER_0)
 
 void main() {
-
     vec2 p = gl_FragCoord.xy / u_resolution;
     vec2 mouse = u_mouse / u_resolution;
 
-    vec3 color = vec3(0.0);
+    vec3 color = vec3(mouse.x, 1.0, abs(sin(u_time)));
 
-    for(float i = 0.0; i < 10.0; i++) {
-        for(float j = 0.0; j < 10.0; j++) {
-            color += vec3(rect(p, vec2(abs(sin(u_time)) * 0.1), vec2(i / 10.0, j / 10.0)));
-        }
-    }
+    vec3 buffer = texture2D(u_buffer1, p).rgb;
+    buffer *= 0.98;
 
-    color *= mix(vec3(p.x, p.y, mouse.y), vec3(p.y, p.x, mouse.y), p.y);
-
-    gl_FragColor = vec4(color,1.0);
+    float c = circle(p, mouse);
+    buffer = mix(buffer, color, c * 1.0);
+    gl_FragColor = vec4(buffer, 1.0);
 }
+
+#elif defined(BUFFER_1)
+
+void main() {
+    vec2 p = gl_FragCoord.xy / u_resolution;
+
+    vec3 buffer = texture2D(u_buffer0, p).rgb;
+    gl_FragColor = vec4(buffer, 1.0);
+}
+
+#else
+
+void main() {
+    vec2 p = gl_FragCoord.xy / u_resolution;
+
+    vec3 color = vec3(0.0);
+    
+    vec3 b1 = texture2D(u_buffer1, p).rgb;
+    color += b1;
+    gl_FragColor = vec4(color, 1.0);
+}
+
+#endif
