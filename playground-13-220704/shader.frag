@@ -13,25 +13,22 @@ vec3 hsv2rgb(vec3 c)
     return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
 }
 
-
 void main() {
 
     vec2 p = gl_FragCoord.xy / u_resolution;
     vec2 mouse = u_mouse / u_resolution;
 
+    vec3 color1 = hsv2rgb(vec3(mod(u_time * 0.02, 1.0), 0.4, 1.0));
 
-    float s = 0.8;
+    float num = floor(mouse.x * 20.0);
 
-    vec3 color1 = hsv2rgb(vec3(0.4, 1.0, 1.0));
-    vec3 color2 = hsv2rgb(vec3(0.8, 1.0, 1.0));
+    float circle = length(vec2(mod(p.x, 1.0 / num) * num - 0.5, mod(p.y, 1.0) - 0.5));
 
-    float shape = u_time * s - floor(length(cos(p) - vec2(0.5)) - u_time * s);
-    shape = sin(shape);
-    shape = abs(shape);
+    circle = step(0.5 + sin(u_time) * 0.1, circle);
 
-    vec3 color = vec3(1.0);
-    
-    color = mix(color1, color2, shape);
+    vec3 color = vec3(circle);
+
+    color = color * color1;
 
     gl_FragColor = vec4(color,1.0);
 }
