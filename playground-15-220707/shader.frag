@@ -12,14 +12,12 @@ void main() {
     vec2 p = gl_FragCoord.xy / u_resolution;
     vec2 mouse = u_mouse / u_resolution;
 
-    float repeat = sin(u_time) * 2.0;
-    float line = 0.04;
-    float pos = abs(sin(u_time));
+    float s = abs(sin(u_time) * 0.02) + 0.001;
+    float pos = abs(cos(u_time * 0.5)) * 0.4;
 
-    float circle = length(vec2(mod(p.x - 0.5 , 1.0 / repeat) * repeat, p.y - 0.5));
+    float circle = length(vec2(mod(p.x, 0.2) * 4.0 - 0.5, p.y - 0.5));
 
-    circle = circle + step(pos - line, circle) - step(pos + line, circle);
-    circle = circle + step(pos + 0.2 - line, circle) - step(pos + 0.2 + line, circle);
+    circle = step(pos - s, circle) - step(pos + s, circle);
 
     vec3 color = vec3(circle);
 
