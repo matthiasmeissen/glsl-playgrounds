@@ -6,24 +6,26 @@ uniform vec2 u_resolution;
 uniform vec2 u_mouse;
 uniform float u_time;
 
-
-float lineDist(vec2 p, vec2 start, vec2 end, float width) {
-	vec2 dir = start - end;
-	float lngth = length(dir);
-	dir /= lngth;
-	vec2 proj = max(0.0, min(lngth, dot((start - p), dir))) * dir;
-	return length( (start - p) - proj ) - (width / 2.0);
-}
-
-float sdCircle( in vec2 p, in float r ) 
+float sdQuad( in vec2 p, in vec2 p0, in vec2 p1, in vec2 p2, in vec2 p3 )
 {
-    return length(p)-r;
-}
+	vec2 e0 = p1 - p0; vec2 v0 = p - p0;
+	vec2 e1 = p2 - p1; vec2 v1 = p - p1;
+	vec2 e2 = p3 - p2; vec2 v2 = p - p2;
+	vec2 e3 = p0 - p3; vec2 v3 = p - p3;
 
-vec2 rotateCW(vec2 p, float a)
-{
-	mat2 m = mat2(cos(a), -sin(a), sin(a), cos(a));
-	return p * m;
+	vec2 pq0 = v0 - e0*clamp( dot(v0,e0)/dot(e0,e0), 0.0, 1.0 );
+	vec2 pq1 = v1 - e1*clamp( dot(v1,e1)/dot(e1,e1), 0.0, 1.0 );
+	vec2 pq2 = v2 - e2*clamp( dot(v2,e2)/dot(e2,e2), 0.0, 1.0 );
+    vec2 pq3 = v3 - e3*clamp( dot(v3,e3)/dot(e3,e3), 0.0, 1.0 );
+    
+    vec2 ds = min( min( vec2( dot( pq0, pq0 ), v0.x*e0.y-v0.y*e0.x ),
+                        vec2( dot( pq1, pq1 ), v1.x*e1.y-v1.y*e1.x )),
+                   min( vec2( dot( pq2, pq2 ), v2.x*e2.y-v2.y*e2.x ),
+                        vec2( dot( pq3, pq3 ), v3.x*e3.y-v3.y*e3.x ) ));
+
+    float d = sqrt(ds.x);
+
+	return (ds.y>0.0) ? -d : d;
 }
 
 
@@ -32,17 +34,18 @@ void main() {
     vec2 p = (2.0 * gl_FragCoord.xy - u_resolution) / u_resolution.y;
     vec2 mouse = (2.0 * u_mouse - u_resolution) / u_resolution.y;
 
+    vec2 v1 = 0.8 * cos(u_time + vec2(0.0, 0.2) - 0.4);
+    vec2 v2 = 0.8 * cos(u_time + vec2(-0.4, 0.2) + sin(u_time));
+    vec2 v3 = 0.8 * cos(u_time + vec2(-0.2, 0.6) + 2.4);
+    vec2 v4 = 0.8 * cos(u_time + vec2(0.2, -0.4) + sin(u_time));
 
-    float line = lineDist(p - 0.5, vec2(-0.8, 0.0), vec2(0.8, 0.0), 0.01);
+    float d = sdQuad(p, v1, v2, v3, v4);
 
-    float circle = sdCircle(p, 0.4);
-    circle = step(0.2, circle);
+    float col = 1.0 - smoothstep(0.0,0.8,abs(d));
+    col = abs(sin(u_time * 0.4 + d));
+    col = step(0.4, mod(2.0, col));
 
-    vec2 position = vec2(mod(0.8, sin(u_time * 0.2)), mod(sin(u_time), sin(u_time * 0.4)));
-    float d = sdCircle(position, 0.6);
-    vec3 col = mix(vec3(0.02), vec3(1.0,1.0,0.0), 1.0 - smoothstep(0.0, 0.005, abs(length(p - position) - abs(d)) - 0.0025));
-
-    vec3 color = vec3(circle * col);
+    vec3 color = vec3(col);
 
     gl_FragColor = vec4(color,1.0);
 }
