@@ -6,31 +6,9 @@ uniform vec2 u_resolution;
 uniform vec2 u_mouse;
 uniform float u_time;
 
+#define less(a,b,c)      mix(a,b,step(0.,c))
+#define sabs(x,k) less((.5/k)*x*x+k*.5,abs(x),abs(x)-k)
 
-vec2 hash( vec2 p ){
-    p = vec2(dot(p,vec2(127.1,311.7)),
-             dot(p,vec2(269.5,183.3)));
-    return fract(sin(p)*18.5453);
-}
-
-vec2 voronoi( in vec2 x ){
-    vec2 n = floor( x );
-    vec2 f = fract( x );
-
-	vec3 m = vec3( 8.0 );
-    for( int j=-1; j<=1; j++ )
-    for( int i=-1; i<=1; i++ )
-    {
-        vec2  g = vec2( float(i), float(j) );
-        vec2  o = hash( n + g );
-	    vec2  r = g - f + (0.5+0.5*sin(u_time+6.2831*o));
-		float d = dot( r, r );
-        if( d<m.x )
-            m = vec3( d, o );
-    }
-
-    return vec2( sqrt(m.x), m.y+m.z );
-}
 
 vec3 pal( in float t, in vec3 a, in vec3 b, in vec3 c, in vec3 d )
 {
@@ -43,15 +21,16 @@ void main() {
     vec2 p = (2.0 * gl_FragCoord.xy - u_resolution) / u_resolution.y;
     vec2 mouse = (2.0 * u_mouse - u_resolution) / u_resolution.y;
 
+    float t1 = ((sin(u_time * 0.2) + 1.0) * 0.5) + 0.8;
 
-    p = gl_FragCoord.xy / max(u_resolution.x, u_resolution.y);
-    
-    vec2 vor = voronoi(p * 2.0);
+    vec2 c = vec2(-0.5, -0.5) * 1.0;
+    vec2 u = vec2(p.x + sin(u_time * 0.2) * 0.5, p.y + sin(u_time * 0.01));
+    for (int i = 0; i < 8; ++i) {
+        float m = pow(dot(u * p * t1, u + abs(sin(u_time * 0.02))),0.3);
+        u = sabs(u, (0.33 + 0.1 * p.y)) / m + c;
+    }
 
-    vec3 col1 = pal(vor.x + u_time * 0.4, vec3(0.5,0.5,0.5),vec3(0.5,0.5,0.5),vec3(1.0,1.0,1.0),vec3(0.0,0.10,0.20));
-    vec3 col2 = vec3(smoothstep(0.0, 0.2, vor.y));
-
-    vec3 col = col1 * col2;
+    vec3 col = pal(u.x + u_time * 0.4, vec3(0.5,0.5,0.5),vec3(0.5,0.5,0.5),vec3(1.0,1.0,1.0),vec3(0.0,0.10,0.20));
 
     vec3 color = vec3(col);
 
