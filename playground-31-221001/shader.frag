@@ -6,8 +6,8 @@ uniform vec2 u_resolution;
 uniform vec2 u_mouse;
 uniform float u_time;
 
-#define less(a,b,c) mix(a, b, step(0.0, c))
-#define sabs(x,k) less((0.5 / k) * x * x + k * 0.5, abs(x), abs(x) -k)
+#define PI 3.1415926535897932384626433832795
+#define rot(a)  mat2(cos(a),sin(a), -sin(a),cos(a))
 
 
 vec3 pal( in float t, in vec3 a, in vec3 b, in vec3 c, in vec3 d )
@@ -20,20 +20,21 @@ void main() {
 
     vec2 p = (2.0 * gl_FragCoord.xy - u_resolution) / u_resolution.y;
     vec2 mouse = (2.0 * u_mouse - u_resolution) / u_resolution.y;
-
-    float t1 = ((sin(u_time * 0.02) + 1.0) * 0.5) + 0.8;
-
-    vec2 c = vec2(-0.8, -0.8);
-    vec2 u = mod(vec2(0.4, -0.1), vec2(p.x - sin(u_time * 0.02) * abs(sin(u_time * 0.1)) * 8.0, p.y / sin(u_time * 0.01)) * 0.4);
-
-    for (int i = 0; i < 6; ++ i) {
-        float m = pow(dot(u * p * t1, u + abs(sin(u_time * 0.02))),0.3);
-        u = sabs(vec2(u.y, u.y * 0.8), (0.8 + 0.1 * p.x)) / m + c;
+    
+    float l = length(vec2(p.x + sin(u_time * 0.1) * 2.0, p.y + cos(u_time * 0.1) * 2.0));
+    p *= rot( l + u_time * 0.04);
+    p *= p / l * 2.0;
+        
+    for( int i = 0; i < 3; i++){
+        float v = length( mod(p, 0.5) - p.x * 0.25 );
+        p.y *= ((sin( v * 5.0) ) * 0.5) * ((sin(u_time - length(p) * 0.5 ) + PI));
     }
 
-    vec3 col = pal(u.x + u_time * 0.4, vec3(0.5,0.5,0.5),vec3(0.5,0.5,0.5),vec3(1.0,1.0,1.0),vec3(0.0,0.10,0.20));
+    vec3 col = pal(p.y, vec3(0.5,0.5,0.5),vec3(0.5,0.5,0.5),vec3(1.0,1.0,1.0),vec3(0.0,0.10,0.20));
 
-    col = col - vec3(step(0.8, u.x));
+    float col1 = step(0.4, p.y);
+
+    col = col * col1;
 
     vec3 color = vec3(col);
 
