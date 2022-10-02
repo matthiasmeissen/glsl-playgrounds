@@ -6,9 +6,12 @@ uniform vec2 u_resolution;
 uniform vec2 u_mouse;
 uniform float u_time;
 
-#define PI 3.1415926535897932384626433832795
-#define rot(a)  mat2(cos(a),sin(a), -sin(a),cos(a))
 
+vec2 rotateCW(vec2 p, float a)
+{
+	mat2 m = mat2(cos(a), -sin(a), sin(a), cos(a));
+	return p * m;
+}
 
 vec3 pal( in float t, in vec3 a, in vec3 b, in vec3 c, in vec3 d )
 {
@@ -20,22 +23,22 @@ void main() {
 
     vec2 p = (2.0 * gl_FragCoord.xy - u_resolution) / u_resolution.y;
     vec2 mouse = (2.0 * u_mouse - u_resolution) / u_resolution.y;
-    
-    float l = length(vec2(p.x + sin(u_time * 0.1) * 2.0, p.y + cos(u_time * 0.1) * 2.0));
-    p *= rot( l + u_time * 0.04);
-    p *= p / l * 2.0;
-        
-    for( int i = 0; i < 3; i++){
-        float v = length( mod(p, 0.5) - p.x * 0.25 );
-        p.y *= ((sin( v * 5.0) ) * 0.5) * ((sin(u_time - length(p) * 0.5 ) + PI));
+
+    float t = p.x - p.y * 0.4;
+
+    for (int i = 0; i < 4; i ++) {
+        vec2 l = rotateCW(p, u_time * 0.2);
+        t = t / mix(length(p * 0.2), l.y, l.x * float(i) * 8.0);
+        t = t * mix(length(p * 0.8), l.x, l.y * float(i) * 4.0) * 0.2;
+        t = t + mix(abs(sin(u_time * 0.1)), p.x, p.y);
     }
 
-    vec3 col = pal(p.y, vec3(0.5,0.5,0.5),vec3(0.5,0.5,0.5),vec3(1.0,1.0,1.0),vec3(0.0,0.10,0.20));
+    t = sqrt(t);
 
-    float col1 = step(0.4, p.y);
+    vec3 col = pal(t, vec3(0.5,0.5,0.5),vec3(0.5,0.5,0.5),vec3(1.0,1.0,1.0),vec3(0.0,0.10,0.20));
 
-    col = col * col1;
-
+    col = col - vec3(abs(step(2.0, t)));
+    
     vec3 color = vec3(col);
 
     gl_FragColor = vec4(color,1.0);
