@@ -18,7 +18,6 @@ vec3 pal( in float t, in vec3 a, in vec3 b, in vec3 c, in vec3 d )
 }
 
 
-
 void main() {
 
     vec2 p = (2.0 * gl_FragCoord.xy - u_resolution) / u_resolution.y;
@@ -45,7 +44,6 @@ void main() {
 
     float t1 = smoothstep(0.8, 0.81, rl);
     float t2 = smoothstep(0.81, 0.82, rl);
-
     float t = (t1 - t2) * sin(u_time);
 
     col = col - step(mod(s, 2.0), rl) + t;
