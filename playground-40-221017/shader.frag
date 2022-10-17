@@ -7,20 +7,8 @@ uniform vec2 u_mouse;
 uniform float u_time;
 
 
-float noise (vec2 uv, float factor) {
-    float o = 0.0;
+#define rot(a) mat2(cos(a + vec4(0, 22, 8, 20))) 
 
-    uv = uv * 2.0;
-    
-    for(int i = 0; i < 4; i++) {
-        uv *= -factor * factor * 1.2;
-        uv += sin(uv.yx * factor) * factor + u_time * 0.2;
-        uv += sin(uv.yx * factor) / factor + u_time * 0.1;
-        o += cos(uv.x - uv.y) - sin(uv.y + uv.x - o);
-    }
-    
-    return o;
-}
 
 vec3 pal( in float t, in vec3 a, in vec3 b, in vec3 c, in vec3 d )
 {
@@ -32,14 +20,22 @@ void main() {
 
     vec2 p = (2.0 * gl_FragCoord.xy - u_resolution) / u_resolution.y;
     vec2 mouse = (2.0 * u_mouse - u_resolution) / u_resolution.y;
+    
 
-    float n = noise(p * 0.4, 1.4);
+    vec3 p1 = vec3(4.0, p * 2.0);
+    vec3 g = p1;
 
-    float n1 = step(n, 0.8);
+    p1.xy *= rot(u_time * 0.2);
 
-    vec3 col = pal(n, vec3(0.5,0.5,0.5),vec3(0.5,0.5,0.5),vec3(1.0,1.0,1.0),vec3(0.0,0.10,0.20));
+    float d = dot(sin(p1 * 0.4) * cos(p1).yzx, vec3(1.0)) * dot(sin(g * u_time * 0.2) * cos(g / 0.2).yzx, vec3(1.0));
 
-    col = col - vec3(n1);
+    d = abs(mod(d, 4.0) - 0.2) * 5.0;
+
+    float d1 = smoothstep(0.2, 1.0, d);
+
+    vec3 col = pal(d + u_time * 0.4, vec3(0.5,0.5,0.5),vec3(0.5,0.5,0.5),vec3(1.0,1.0,1.0),vec3(0.0,0.10,0.20));
+
+    col = col - vec3(d1);
 
     vec3 color = vec3(col);
 
