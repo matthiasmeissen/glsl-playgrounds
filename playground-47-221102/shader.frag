@@ -41,7 +41,7 @@ void main() {
     float d1 = range(sin(u_time * 0.1), vec2(-1.0, 1.0), vec2(-2.0, 2.0));
     float d2 = range(sin(u_time * 0.1), vec2(-1.0, 1.0), vec2(0.2, 0.8));
 
-    float t = waveCircle(p, 2.0, sin(u_time * 0.1) * 4.0, d2, u_time * 20.0, d1);
+    float t = waveCircle(p, u_time * 0.2, sin(u_time * 0.1) * 4.0, d2, u_time * 20.0, d1);
 
     vec3 col = pal(t, vec3(0.5,0.5,0.5),vec3(0.5,0.5,0.5),vec3(1.0,1.0,1.0),vec3(0.0,0.10,0.20));
 
