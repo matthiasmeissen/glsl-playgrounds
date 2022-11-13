@@ -6,17 +6,12 @@ uniform vec2 u_resolution;
 uniform vec2 u_mouse;
 uniform float u_time;
 
+#define rot(a) mat2(cos(a), -sin(a), sin(a), cos(a))
 
-vec2 rotateCW(vec2 p, float a)
-{
-	mat2 m = mat2(cos(a), -sin(a), sin(a), cos(a));
-	return p * m;
-}
 
-float line (vec2 p, float r, bool blur) {
-    float a = blur ? 0.0 : 0.0;
-    float b = blur ? 0.4 : 0.1;
-    return smoothstep(a, b, abs(p.x) - r);
+float range(float val, vec2 i, vec2 o) {
+    float r = o.x + ((o.y - o.x) / (i.y - i.x)) * (val - i.x);
+    return r;
 }
 
 vec3 pal( in float t, in vec3 a, in vec3 b, in vec3 c, in vec3 d )
@@ -25,28 +20,28 @@ vec3 pal( in float t, in vec3 a, in vec3 b, in vec3 c, in vec3 d )
 }
 
 
-
 void main() {
 
     vec2 p = (2.0 * gl_FragCoord.xy - u_resolution) / u_resolution.y;
     vec2 mouse = (2.0 * u_mouse - u_resolution) / u_resolution.y;
 
-    p = p * p;
+    float t = range(sin(u_time * 0.4), vec2(-1.0, 1.0), vec2(0.1, 0.4));
 
-    vec2 t = vec2(sin(u_time * 0.2), cos(u_time * 0.4 + cos(u_time * 0.2))) * 0.1;
+    float d = length(p * t);
 
-    float d = line(rotateCW(p, u_time * 0.2), t.x, false);
+    vec2 p1 = mod(vec2(p), 2.0) * rot(u_time * 0.4);
 
-    if (length(p) > p.x * abs((sin(u_time * 0.1) + 0.8))) {
-        d = line(rotateCW(p, u_time * 0.2), t.y, true);
-    }
+    float r1 = (p1.x < 0.0) ? 0.2 : (p1.x > 0.2) ? 0.1 : 0.4;
+    float r2 = (p1.y < 0.1) ? 0.1 : (p1.y > 0.3) ? 0.2 : 0.02;
+
+    float s1 = smoothstep(r1, r1 + 0.1, d);
+    float s2 = smoothstep(r2, r2 + 0.2, d);
+
+    d = s1 + s2;
+
+    d = step(0.1, d) - step(0.2, d) / d;
 
     vec3 col = pal(d + 0.4, vec3(0.5,0.5,0.5),vec3(0.5,0.5,0.5),vec3(1.0,1.0,1.0),vec3(0.0,0.10,0.20));
-
-    float r = step(0.1, d);
-
-    col = col - vec3(d);
-    col = col * r;
 
     vec3 color = vec3(col);
 
