@@ -28,7 +28,6 @@ void main() {
     float t = range(sin(u_time * 0.4), vec2(-1.0, 1.0), vec2(0.1, 0.4));
 
     float d = length(p * t);
-
     vec2 p1 = mod(vec2(p), 2.0) * rot(u_time * 0.4);
 
     float r1 = (p1.x < 0.0) ? 0.2 : (p1.x > 0.2) ? 0.1 : 0.4;
