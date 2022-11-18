@@ -7,9 +7,15 @@ uniform vec2 u_mouse;
 uniform float u_time;
 
 
-vec3 pal( in float t, in vec3 a, in vec3 b, in vec3 c, in vec3 d )
-{
-    return a + b*cos( 6.28318*(c*t+d) );
+float slice (vec2 p, float s, vec2 r) {
+
+    float s1 = radians((1.0 - s) * 360.0 - 180.0);
+    float t = step(s1, atan(p.y, p.x));
+
+    float d = step(r.x - r.y, length(p)) - step(r.x + r.y, length(p));
+    float l = t * d;
+
+    return l;
 }
 
 
@@ -18,22 +24,13 @@ void main() {
     vec2 p = (2.0 * gl_FragCoord.xy - u_resolution) / u_resolution.y;
     vec2 mouse = (2.0 * u_mouse - u_resolution) / u_resolution.y;
 
-    float t = fract(mod(p.x, 0.2) + p.y + u_time * 0.1);
+    float d = 0.0;
 
-    float d = distance(p.x, sin(p.y + u_time)) - 0.4;
+    for (float i = 0.0; i < 20.0; i++) {
+        d += slice(p * abs(sin(u_time * 0.1)) * 2.0, i / 10.0 * (abs(sin(u_time * 0.2)) - 0.2), vec2(i * 0.1, 0.04));
+    }
 
-    float s = t - d;
-
-    float s1 = step(0.4, s);
-    float s2 = step(0.48, s);
-
-    float l = s1 - s2;
-
-    vec3 col = pal(s + u_time * 0.2, vec3(0.5,0.5,0.5),vec3(0.5,0.5,0.5),vec3(1.0,1.0,1.0),vec3(0.0,0.10,0.20));
-
-    col = col * vec3(l);
-
-    vec3 color = vec3(col);
+    vec3 color = vec3(d);
 
     gl_FragColor = vec4(color,1.0);
 }
