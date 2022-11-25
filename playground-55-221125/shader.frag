@@ -10,10 +10,10 @@ uniform float u_time;
 #define rot(a) mat2(cos(a), -sin(a), sin(a), cos(a))
 
 
-float halfCircle (vec2 p, float radius, float rotation, float pos) {
-    float l = step(radius, length(p));
-    float t = step(pos, (p * rot(rotation)).x);
-    return t - l;
+float spiralSDF(vec2 st, float t) {
+    float r = dot(st, st);
+    float a = atan(st.y, st.x);
+    return abs(sin(fract(log(r) * t + a * 0.159)));
 }
 
 
@@ -22,13 +22,20 @@ void main() {
     vec2 p = (2.0 * gl_FragCoord.xy - u_resolution) / u_resolution.y;
     vec2 mouse = (2.0 * u_mouse - u_resolution) / u_resolution.y;
 
-    float d = halfCircle(p, 0.8, u_time, 0.0);
+    float s = spiralSDF(p * rot(u_time), 0.8);
 
-    for (float i = 1.0; i < 80.0; i++) {
-        d /= halfCircle(p, (0.2 * i) / 8.0, u_time * i * 0.04, 0.0);
-    }
+    vec2 p1 = p * rot(1.58);
 
-    vec3 color = vec3(d);
+    float t = atan(p1.y, p1.x);
+
+    float s1 = step(abs(sin(u_time * 1.2)) * 3.14 + 1.0, s * t * t);
+    float s2 = step(abs(sin(u_time)) * 3.14, s * t * t);
+    float s3 = step(abs(sin(u_time)) * 3.14, s / t);
+    float s4 = step(abs(sin(u_time * 0.4)) * 3.14, s * t);
+
+    s = s2 - s1 + s3 + s4;
+
+    vec3 color = vec3(s);
 
     gl_FragColor = vec4(color,1.0);
 }
