@@ -39,7 +39,6 @@ void main() {
     }
 
     float s = length(p);
-
     d -= s;
 
     float s1 = length(p + u_time);
