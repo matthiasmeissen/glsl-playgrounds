@@ -7,40 +7,30 @@ uniform vec2 u_mouse;
 uniform float u_time;
 
 
-#define rot(a) mat2(cos(a), -sin(a), sin(a), cos(a))
-
-
-float circle (vec2 p, float r) {
-    float d = length(p);
-    float c = step(r, d) - step(r + 0.02, d);
-    return c;
-}
-
 
 void main() {
 
     vec2 p = (2.0 * gl_FragCoord.xy - u_resolution) / u_resolution.y;
     vec2 mouse = (2.0 * u_mouse - u_resolution) / u_resolution.y;
 
-    vec2 p1 = p;
+    vec2 p1 = fract(p * 10.0);
+    float dots = 1.0 - step(0.02, length(p1 - 0.5));
 
-    p1 = sin(p1 * 1.2);
-    p1 = p1 * rot(u_time * 0.2);
+    float lines = 1.0 - step(0.002, abs(p.y)) * step(0.002, abs(p.x));
 
-    p1.x = sin(u_time) > 0.0 ? p1.x * 0.1 : p1.x * 0.2;
+    float c;
 
-    p1.y = p.x > -0.4 && p.x < 0.4 ? p1.y : p1.y * 0.2;
+    for(float i = 0.0; i < 8.0; i ++) {    
+        float s = fract(u_time * 0.4) * i;
+        vec2 p2 = vec2(p.x, p.y - s);
+        c += step(s - 0.01, length(p2)) - step(s, length(p2));
+        
+        vec2 p3 = vec2(p.x, p.y + s);
+        c += step(s - 0.01, length(p3)) - step(s, length(p3));
+    }
 
-    p1 = mod(vec2(0.4), p1);
-    p1 = p1 * rot(u_time);
 
-    float d1 = circle(vec2(p1.x, p1.y * 1.4), 0.4);
-    float d2 = circle(vec2(p1.x + 0.8, p1.y * 1.4), 0.4);
-    float d3 = circle(vec2(p1.x - 0.8, p1.y * 1.4), 0.4);
-    float d4 = circle(vec2(p1.x, p1.y), 0.2);
-
-    float d = d1 + d2 + d3 + d4;
-
+    float d = dots + lines + c;
 
     vec3 color = vec3(d);
 
