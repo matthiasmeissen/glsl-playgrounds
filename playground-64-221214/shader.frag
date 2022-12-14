@@ -13,26 +13,17 @@ void main() {
     vec2 p = (2.0 * gl_FragCoord.xy - u_resolution) / u_resolution.y;
     vec2 mouse = (2.0 * u_mouse - u_resolution) / u_resolution.y;
 
-    vec2 p1 = fract(p * 10.0);
-    float dots = 1.0 - step(0.02, length(p1 - 0.5));
+    float t1 = length(p * atan(p.x * 40.0) * sin(u_time));
+    float t2 = length(p + atan(p.x * 8.0) * cos(u_time));
+    float t = step(0.4, t1) + step(0.4, t2);
 
-    float lines = 1.0 - step(0.002, abs(p.y)) * step(0.002, abs(p.x));
+    float l = smoothstep(0.2, 0.5, t1);
 
-    float c;
-
-    for(float i = 0.0; i < 8.0; i ++) {    
-        float s = fract(u_time * 0.4) * i;
-        vec2 p2 = vec2(p.x, p.y - s);
-        c += step(s - 0.01, length(p2)) - step(s, length(p2));
-        
-        vec2 p3 = vec2(p.x, p.y + s);
-        c += step(s - 0.01, length(p3)) - step(s, length(p3));
+    for(float i = 0.0; i < 4.0; i++) {
+        t = (t / i) * (1.0 - l * i);
     }
 
-
-    float d = dots + lines + c;
-
-    vec3 color = vec3(d);
+    vec3 color = vec3(t);
 
     gl_FragColor = vec4(color,1.0);
 }
