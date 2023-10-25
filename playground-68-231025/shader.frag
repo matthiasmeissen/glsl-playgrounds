@@ -7,26 +7,19 @@ uniform vec2 u_mouse;
 uniform float u_time;
 
 
+#define PI 3.14159265359
 #define rot(a) mat2(cos(a), -sin(a), sin(a), cos(a))
 
-vec3 pal( in float t, in vec3 a, in vec3 b, in vec3 c, in vec3 d )
-{
-    return a + b*cos( 6.28318*(c*t+d) );
-}
-
 vec3 col1(vec2 p) {
-    vec2 p1 = (p * p + vec2(p.x, p.y * 0.2)) * 4.0;
+    vec2 p1 = p * p * 8.0;
+    p1 = rot(u_time) * p1;
 
-    p1 = p1 * 8.0;
+    vec2 p2 = vec2(atan(p1.x, p.y) / PI + 0.5, length(length(p) > 0.6 ? p : p / p1 * 4.0)) * sin(u_time * 0.2) * 2.0;
 
-    p1 = rot(u_time * 0.4) * p1;
+    float d1 = distance(p2.x, p2.y);
+    float d2 = length(p2);
 
-    float d1 = length(p * vec2(p1.y, p.x)) + fract(p1.y * p.y + u_time * 0.2);
-    float d2 = length(p * vec2(p1.y * p.y, p.x)) + fract(p1.y * p.x + u_time * 0.2);
-
-    float c1 = (p1.x * u_time) > 0.5 ? d1 : d2;
-
-    vec3 col = vec3(c1);
+    vec3 col = vec3(d1 * d2);
     return col;
 }
 
