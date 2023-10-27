@@ -11,15 +11,15 @@ uniform float u_time;
 #define rot(a) mat2(cos(a), -sin(a), sin(a), cos(a))
 
 vec3 col1(vec2 p) {
-    vec2 p1 = p * p * 8.0;
-    p1 = rot(u_time) * p1;
+    vec2 p1 = p * 2.0;
 
-    vec2 p2 = vec2(atan(p1.x, p.y) / PI + 0.5, length(length(p) > 0.6 ? p : p / p1 * 4.0)) * sin(u_time * 0.2) * 2.0;
+    p1 = rot(u_time * 0.4) * p1;
+    
+    float d1 = step(0.4, atan(p1.x * p.y, fract(p1.y + u_time * 0.4)));
 
-    float d1 = distance(p2.x, p2.y);
-    float d2 = length(p2);
+    float d2 = smoothstep(0.0, 0.8, atan(sin(p1.x) * p1.y, fract(p.y + u_time * 0.2)));
 
-    vec3 col = vec3(d1 * d2);
+    vec3 col = vec3(d1 + d2);
     return col;
 }
 
@@ -28,7 +28,7 @@ void main() {
     vec2 p = (2.0 * gl_FragCoord.xy - u_resolution) / u_resolution.y;
     vec2 mouse = (2.0 * u_mouse - u_resolution) / u_resolution.y;
 
-    vec3 col1 = 1.0 - col1(p);
+    vec3 col1 = col1(p);
 
     vec3 color = vec3(col1);
     
