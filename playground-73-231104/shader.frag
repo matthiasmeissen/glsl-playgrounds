@@ -14,31 +14,25 @@ float sdOutline(float d, float size, float width) {
     return smoothstep(size, size + width * 4.0, d) - smoothstep(size + width, size + width * 4.0, d);
 }
 
-vec3 pal( in float t, in vec3 a, in vec3 b, in vec3 c, in vec3 d )
-{
-    return a + b*cos( 6.28318*(c*t+d) );
-}
-
 
 vec3 col1(vec2 p) {
-    vec2 p1 = vec2(p.x * p.x, p.y * 2.0);
+    vec2 p1 = p;
+    p1 = mod(p1 * p1 - 1.0, 2.0) - 1.0;
+    float d1 = length(vec2(p1.x, p1.y + 1.0) * 0.5) + sin(u_time * 0.4 + p.y);
 
-    p1 = mod(p1 - 1.0, 2.0) - 1.0;
+    vec2 p2 = rot(u_time) * p1 / p1.y + 4.0;
+    float d2 = atan(p2.x, p.y * p1.y) / PI * 0.5 + 1.0;
 
-    float circle = 0.0;
+    float c1 = 0.0;
 
-    float d1 = 0.0;
-
-    for (float i = 1.0; i < 10.0; i++) {
-        p1 = rot(u_time * 0.04 * i) * p1;
-        circle = length(p1 + p * p);
-
-        d1 += sdOutline(circle, i * 0.04, 0.04);
-
-        d1 += sdOutline(circle * p1.x, i * 0.02, 0.002);
+    for (float i = 0.0; i < 40.0; i++) {
+        c1 += sdOutline(d1 * d2, 1.0 - 1.0 / i, 0.004);
+        c1 += length(p1 * p2) * 0.01;
     }
 
-    vec3 col = vec3(d1);
+    c1 = 1.0 - c1;
+
+    vec3 col = vec3(c1);
     return col;
 }
 
@@ -47,11 +41,9 @@ void main() {
     vec2 p = (2.0 * gl_FragCoord.xy - u_resolution) / u_resolution.y;
     vec2 mouse = (2.0 * u_mouse - u_resolution) / u_resolution.y;
 
-    float d1 = col1(p).x;
+    vec3 col1 = col1(p);
 
-    vec3 col = pal(d1 + 0.4, vec3(0.5,0.5,0.5),vec3(0.5,0.5,0.5),vec3(1.0,1.0,1.0),vec3(0.0,0.10,0.20));
-
-    vec3 color = vec3(col);
+    vec3 color = vec3(col1);
     
     gl_FragColor = vec4(color,1.0);
 }
