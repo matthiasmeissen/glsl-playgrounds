@@ -23,14 +23,20 @@ float flowerSDF(vec2 st, float N) {
 }
 
 
-float grid(vec2 p, float width, float size, float number) {
+float grid(vec2 p, float number) {
     vec2 p1 = p * number;
     p1 = mod(p1 - 1.0, 2.0) - 1.0;
-    float w = width * 0.1;
-    float d1 = step(-w, p1.x) - step(w, p1.x);
-    d1 += step(-w, p1.y) - step(w, p1.y);
-    d1 = d1 - step(size, abs(p1.x)) - step(size, abs(p1.y));
-    float col = d1;
+    p1 = rot(u_time * 0.4) * p1;
+
+    float d1 = flowerSDF(p1 * p * (abs(sin(u_time) * 2.0 + 0.4)), 8.0);
+
+    float d2 = flowerSDF(p1 * p * (abs(sin(u_time + 0.4) * 2.0 + 0.4)), 8.0);
+
+    d1 = sdOutline(d1, 0.4, 0.02);
+
+    d2 = step(sin(u_time * 0.2), d2);
+
+    float col = d1 + d2;
     return col;
 }
 
@@ -39,12 +45,9 @@ vec3 col1(vec2 p) {
     vec2 p1 = p * p * 2.0;
     p1 = rot(u_time * 0.4) * p1;
 
-    float d1 = flowerSDF(p1 + p, 8.0);
-    d1 = 1.0 - step(0.1, d1);
+    float d1 = grid(p, 8.0);
 
-    float d2 = grid(p * p1, 0.1, (abs(sin(u_time)) + 0.2) * 0.8, 20.0) * 0.4;
-
-    vec3 col = vec3(d1 * 2.0 + d2);
+    vec3 col = vec3(d1);
     return col;
 }
 
