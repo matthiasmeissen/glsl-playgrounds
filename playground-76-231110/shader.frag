@@ -10,44 +10,29 @@ uniform float u_time;
 #define PI 3.14159265359
 #define rot(a) mat2(cos(a), -sin(a), sin(a), cos(a))
 
-float sdOutline(float d, float size, float width) {
-    return step(size, d) - step(size + width, d);
-}
 
-float flowerSDF(vec2 st, float N) {
-    st = st * 2.0;
-    float r = length(st);
-    float a = atan(st.y, st.x);
-    float v = float(N) * 0.5;
-    return 1.0 - (abs(cos(a * v)) *  0.5 + 0.5) / r;
-}
-
-
-float grid(vec2 p, float number) {
-    vec2 p1 = p * number;
-    p1 = mod(p1 - 1.0, 2.0) - 1.0;
-    p1 = rot(u_time * 0.4) * p1;
-
-    float d1 = flowerSDF(p1 * p * (abs(sin(u_time) * 2.0 + 0.4)), 8.0);
-
-    float d2 = flowerSDF(p1 * p * (abs(sin(u_time + 0.4) * 2.0 + 0.4)), 8.0);
-
-    d1 = sdOutline(d1, 0.4, 0.02);
-
-    d2 = step(sin(u_time * 0.2), d2);
-
-    float col = d1 + d2;
-    return col;
+vec2 repeat(vec2 p, vec2 tileSize) {
+    // Creates a repeating pattern of tiles with size tileSize
+    vec2 p1 = mod(p, tileSize) - tileSize * 0.5;
+    return p1 / (tileSize * 0.5);
 }
 
 
 vec3 col1(vec2 p) {
-    vec2 p1 = p * p * 2.0;
-    p1 = rot(u_time * 0.4) * p1;
+    vec2 p1 = p;
+    p1 = rot(u_time * 0.2) * p1;
+    
+    p1 = repeat(p1 * p1, vec2(fract(p.y / sin(p.x + p.y)), sin(u_time * 0.1) + 0.4));
 
-    float d1 = grid(p, 8.0);
+    p1 = rot(u_time) * p1;
 
-    vec3 col = vec3(d1);
+    float d1 = length(p1);
+    d1 = step(0.8, d1);
+
+    float d2 = p1.x * p1.y + p1.y;
+    d2 = step(0.2 + sin(p.y), d2);
+
+    vec3 col = vec3(d1 * d2);
     return col;
 }
 
