@@ -12,27 +12,25 @@ uniform float u_time;
 
 
 vec2 repeat(vec2 p, vec2 tileSize) {
-    // Creates a repeating pattern of tiles with size tileSize
     vec2 p1 = mod(p, tileSize) - tileSize * 0.5;
     return p1 / (tileSize * 0.5);
 }
 
 
 vec3 col1(vec2 p) {
-    vec2 p1 = p;
+    vec2 p1 = p * p;
+
+    p1 = atan(p1 * u_time * 0.2) / PI;
     p1 = rot(u_time * 0.2) * p1;
+    p1 = repeat(p1, vec2(sin(p.x * 0.4), fract(p.y * p.x * 8.0)) * rot(p1.y * p.x));
+    p1 = sign(p1) + sqrt(abs(p1));
     
-    p1 = repeat(p1 * p1, vec2(fract(p.y / sin(p.x + p.y)), sin(u_time * 0.1) + 0.4));
+    float d1 = length(p1) - 1.0;
+    d1 = abs(d1 - abs(sin(u_time * 0.2))) - 0.1;
+    d1 = step(p1.y > 0.4 ? 0.1 : 0.02, d1);
+    d1 = 1.0 - d1;
 
-    p1 = rot(u_time) * p1;
-
-    float d1 = length(p1);
-    d1 = step(0.8, d1);
-
-    float d2 = p1.x * p1.y + p1.y;
-    d2 = step(0.2 + sin(p.y), d2);
-
-    vec3 col = vec3(d1 * d2);
+    vec3 col = vec3(d1);
     return col;
 }
 
