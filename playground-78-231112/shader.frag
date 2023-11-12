@@ -18,18 +18,17 @@ vec2 repeat(vec2 p, vec2 tileSize) {
 
 
 vec3 col1(vec2 p) {
-    vec2 p1 = p * p;
+    vec2 p1 = p;
 
-    p1 = atan(p1 * u_time * 0.2) / PI;
-    p1 = rot(u_time * 0.2) * p1;
-    p1 = repeat(p1, vec2(sin(p.x * 0.4), fract(p.y * p.x * 8.0)) * rot(p1.y * p.x));
-    p1 = sign(p1) + sqrt(abs(p1));
+    p1 = rot(u_time * 0.4) * p1;
+
+    vec2 p2 = rot(p1.x) * p;
+
+    float d1 = distance(p, vec2(cos(p2.x * 8.0), p.y)) * distance(p1, vec2(p.x, sin(p.y * 20.0)));
+
+    d1 = step(0.2, d1);
+
     
-    float d1 = length(p1) - 1.0;
-    d1 = abs(d1 - abs(sin(u_time * 0.2))) - 0.1;
-    d1 = step(p1.y > 0.4 ? 0.1 : 0.02, d1);
-    d1 = 1.0 - d1;
-
     vec3 col = vec3(d1);
     return col;
 }
