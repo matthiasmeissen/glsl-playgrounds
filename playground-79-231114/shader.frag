@@ -16,21 +16,28 @@ vec2 repeat(vec2 p, vec2 tileSize) {
     return p1 / (tileSize * 0.5);
 }
 
+float nsin(float x) {
+    return sin(x) * 0.5 + 0.5;
+}
 
-vec3 col1(vec2 p) {
-    vec2 p1 = p;
 
+float col1(vec2 p) {
+    vec2 p1 = p * p;
     p1 = rot(u_time * 0.4) * p1;
 
-    vec2 p2 = rot(p1.x) * p;
+    float d1 = distance(p1.x * p.y, p1.y);
+    d1 = smoothstep(0.0, 0.4, sin(d1));
 
-    float d1 = distance(p, vec2(cos(p2.x * 8.0), p.y)) * distance(p1, vec2(p.x, sin(p.y * 20.0)));
+    return d1;
+}
 
-    d1 = step(0.2, d1);
+float col2(vec2 p) {
+    vec2 p1 = p * p;
 
-    
-    vec3 col = vec3(d1);
-    return col;
+    float d1 = distance(cos(p1 + u_time), vec2(nsin(p1.x + u_time), p.y));
+    d1 = pow(d1, 0.8);
+
+    return d1;
 }
 
 
@@ -38,7 +45,10 @@ void main() {
     vec2 p = (2.0 * gl_FragCoord.xy - u_resolution) / u_resolution.y;
     vec2 mouse = (2.0 * u_mouse - u_resolution) / u_resolution.y;
 
-    vec3 col = col1(p);
+    vec3 col1 = vec3(col1(p));
+    vec3 col2 = 1.0 - vec3(col2(p - 0.1), col2(p - 0.02), col2(p + 0.1));
+
+    vec3 col = col1 * col2;
 
     vec3 color = vec3(col);
     
