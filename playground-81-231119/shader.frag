@@ -21,15 +21,20 @@ float nsin(float x) {
 }
 
 vec3 col1(vec2 p, float t) {
-    vec2 p1 = abs(p + t) * p / fract(vec2(p.x + p.y + 0.5, p.y * 4.0 + t));
-    p1 = p1 * rot(u_time);
-    vec2 pr = p;
-    vec2 pg = vec2(p1.x - 0.2, p1.y);
-    vec2 pb = vec2(p1.x + 0.1, p1.y);
+    vec2 p1 = p * p + p;
 
-    float d1 = distance(p1.x * p1.y, p.y + p1.x);
+    p1 = distance(p1, vec2(0.0, sin(p.y))) * p1;
 
-    vec3 color = vec3(nsin(t) * 0.2, pg.x, pb.x) - d1;
+    p1 = rot(t) * p1;
+
+    float d1 = mix(sin(p1.x * p.y * t), distance(p, p1), nsin(t));
+
+    float d2 = d1;
+
+    d1 = smoothstep(d1, 0.21, distance(atan(p * p), p1 * sin(p)));
+
+
+    vec3 color = vec3(0.8, 0.2, d2) - d1;
 
     return color;
 }
@@ -39,7 +44,7 @@ void main() {
     vec2 p = (2.0 * gl_FragCoord.xy - u_resolution) / u_resolution.y;
     vec2 mouse = (2.0 * u_mouse - u_resolution) / u_resolution.y;
 
-    vec3 col = col1(p, u_time * 0.1);
+    vec3 col = col1(p, u_time);
 
 
     vec3 color = vec3(col);
