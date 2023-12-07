@@ -107,7 +107,6 @@ vec3 col1(vec2 p, float t) {
     p1 = vec2(distance(sin(p1 * 4.0), p1), p1.y * p.y);
 
     float d1 = snoise(vec3(p1.x * p1.x, p1.y, t * 0.2));
-
     d1 = step(0.4, d1);
 
     vec3 color = vec3(d1);
