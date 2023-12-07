@@ -103,7 +103,6 @@ float snoise(vec3 v)
 
 vec3 col1(vec2 p, float t) {
     vec2 p1 = p * 2.0;
-
     p1 = vec2(distance(sin(p1 * 4.0), p1), p1.y * p.y);
 
     float d1 = snoise(vec3(p1.x * p1.x, p1.y, t * 0.2));
