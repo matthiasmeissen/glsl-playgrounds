@@ -101,16 +101,23 @@ float snoise(vec3 v)
 }
 
 
+
 vec3 col1(vec2 p, float t) {
-    vec2 p1 = p * 2.0;
-    p1 = vec2(distance(sin(p1 * 4.0), p1), p1.y * p.y);
 
-    float d1 = snoise(vec3(p1.x * p1.x, p1.y, t * 0.2));
-    d1 = step(0.4, d1);
+  p = atan(p) * rot(p.x + t * 0.1) * p.x * 4.0;
 
-    vec3 color = vec3(d1);
+  vec2 p1 = sin(p * 4.0 + 2.0);
+  float d1 = length(p1);
 
-    return color;
+  vec2 p2 = sin(p * 8.0 + t + p1.y);
+  float d2 = distance(rot(t) * p2, p1);
+
+  float d = d1 * d2;
+  d = smoothstep(0.41, 0.4, d) - smoothstep(0.4, 0.38, d2);
+
+  vec3 color = vec3(d);
+
+  return color;
 }
 
 
