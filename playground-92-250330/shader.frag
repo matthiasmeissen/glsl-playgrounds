@@ -20,34 +20,30 @@ float repeatCircle(in vec2 p, in float repeat, in float offsetX, in float normal
   return length(circles);
 }
 
-// This is a weird example, but a functions parameter can be definde as an out as well
-// Meaning that it will write to a variable passed to it
-// This function does not return any value, but instead writes to the variable clampedValue
-void clampExample (in float value, out float clampedValue) 
-{
-  clampedValue = clamp(value, 0.0, 1.0);
+// Instead of returning c with the return function 
+// It uses an out parameter to do that
+void stepValue(in vec2 uv, in float num, in float factor, out float c) {
+  //c = step(uv.x, mod(num / factor, 1.0));
+  c = smoothstep(uv.x, 0.0, mod(num / factor, 1.0));
 }
 
 
 void main() {
   vec2 p = (2.0 * gl_FragCoord.xy - u_resolution) / u_resolution.y;  
   vec2 mouse = (2.0 * u_mouse - u_resolution) / u_resolution.y;
-
   vec2 uv = gl_FragCoord.xy / u_resolution.xy;
   vec2 uvMouse = u_mouse / u_resolution.xy;
 
-  float circle = repeatCircle(p * length(p), mod(u_time, 2.0), sin(mouse.x), uv.x);
+  float c = 1.0;
+  float num = uvMouse.x * 400.0;
 
-  // Here we take the circle value as an input, compute it and write the new value to it
-  clampExample(circle, circle);
+        if (uv.y > 1.0 - 0.2) { stepValue(uv, num, 1.0, c);     } 
+  else  if (uv.y > 1.0 - 0.4) { stepValue(uv, num, 10.0, c);    } 
+  else  if (uv.y > 1.0 - 0.6) { stepValue(uv, num, 100.0, c);   }
+  else  if (uv.y > 1.0 - 0.8) { stepValue(uv, num, 1000.0, c);  }
+  else  if (uv.y > 1.0 - 1.0) { stepValue(uv, num, 10000.0, c); }
 
-  vec3 colora = vec3(0.5);
-  vec3 colorb = vec3(0.5);
-  vec3 colorc = vec3(1.0);
-  vec3 colord = vec3(0.0,0.33,0.67);
-  colord = vec3(uvMouse.x, uvMouse.y, 0.4);
-
-  vec3 color = pal(circle, colora, colorb, colorc, colord);
+  vec3 color = pal(c, vec3(0.5, 0.5, 0.5), vec3(0.5, 0.5, 0.5), vec3(0.5, 0.5, 0.5), vec3(uvMouse.y, 0.43, 0.68));
 
   gl_FragColor = vec4(color,1.0);
 }
