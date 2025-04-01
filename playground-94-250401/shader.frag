@@ -6,20 +6,32 @@ uniform vec2 u_resolution;
 uniform vec2 u_mouse;
 uniform float u_time;
 
-vec3 pal(in float t, in vec3 a, in vec3 b, in vec3 c, in vec3 d)
-{
-  return a + b * cos(6.28318 * (c * t + d));
-}
+// This creates a Struct, some custom data type that holds a combination of basic data types
+struct PaletteColor {
+  vec3 a;
+  vec3 b;
+  vec3 c;
+  vec3 d;
+};
 
-// Simple function that normalizes a sin from 0-1 by adding 1 and dividing by 2 again
-// Then it maps the output range from 0-1 to the desired range with a mix function
-// A formular to normalize range  (v - iMin) / iMax - iMin
-// For a sin range this is        (v - (-1)) / 1 - (-1)
-// Which leads to this            (v + 1) / 2
-float modRange(in float min, in float max, in float speed)
+// There are two ways to create and initialize a new struct
+// You can create it like any variable by: PaletteColor p1;
+// And then assing values to the elements by: p1.a = vec3(0.5);
+// But this approach only works inside a function
+
+// There is another way to create and initialize a struct
+// This approach works outside any function
+PaletteColor p2 = PaletteColor(
+  vec3(0.5),
+  vec3(0.5),
+  vec3(0.5),
+  vec3(0.4, 0.6, 0.8)
+);
+
+// This function uses a struct to define the colors
+vec3 pal(in float t, in PaletteColor pc)
 {
-  float val = (sin(u_time * speed) + 1.0) * 0.5;
-  return mix(min, max, val);
+  return pc.a + pc.b * cos(6.28318 * (pc.c * t + pc.d));
 }
 
 void main() {
@@ -28,11 +40,14 @@ void main() {
   vec2 uv = gl_FragCoord.xy / u_resolution.xy;
   vec2 uvMouse = u_mouse / u_resolution.xy;
 
-  float c = length(vec2(p.x < 0.5 ? p.x : p.x / p.y, p.y - sin(u_time * 0.1)) * sin(u_time * 0.06));
+  PaletteColor p1 = PaletteColor( vec3(0.5), vec3(0.5), vec3(0.5), vec3(0.4, 0.6, 0.8) );
 
-  c = smoothstep(pow(uv.y, 4.0), 1.0, c);
+  p1.d = vec3(mod(p.y * uv.y + tan(uv.y), uv.x + length(p)) + 0.4, mod(uv.x, uv.y * p.y), 0.8);
 
-  vec3 color = pal(c, vec3(0.5, 0.5, 0.5), vec3(0.5, 0.5, 0.5), vec3(0.5, 0.5, 0.5), vec3(modRange(0.48, 0.52, 0.01), 0.43, 0.68));
+  float c = length(p * p);
+  c = smoothstep(pow(uv.y, 8.0), 1.0, c);
+
+  vec3 color = pal(c, p1);
 
   gl_FragColor = vec4(color,1.0);
 }
