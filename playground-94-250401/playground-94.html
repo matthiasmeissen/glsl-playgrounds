@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playground 94</title>
+    <style>
+        body {
+            margin: 0;
+        }
+    </style>
+    <script type="text/javascript" src="https://rawgit.com/patriciogonzalezvivo/glslCanvas/master/dist/GlslCanvas.js"></script>
+</head>
+<body>
+    <canvas class="glslCanvas" data-fragment-url="shader.frag"></canvas>
+    <script>
+        const canvas = document.querySelector('.glslCanvas')
+        const sandbox = new GlslCanvas(canvas)
+
+        canvas.style.width = '100vw'
+        canvas.style.height = '100vh'
+    </script>
+</body>
+</html>
