@@ -6,25 +6,6 @@ uniform vec2 u_resolution;
 uniform vec2 u_mouse;
 uniform float u_time;
 
-struct PaletteColor {
-  vec3 a;
-  vec3 b;
-  vec3 c;
-  vec3 d;
-};
-
-PaletteColor p1 = PaletteColor(
-  vec3(0.5),
-  vec3(0.5),
-  vec3(0.4),
-  vec3(0.54, 0.82, 0.86)
-);
-
-vec3 pal(in float t, in PaletteColor pc)
-{
-  return pc.a + pc.b * cos(6.28318 * (pc.c * t + pc.d));
-}
-
 float sdCircle(in vec2 p, in float r)
 {
   return length(p) - r;
@@ -34,6 +15,23 @@ float sdBox(in vec2 p, in vec2 b)
 {
   vec2 d = abs(p) - b;
   return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
+}
+
+float opSmoothUnion(in float d1, in float d2, in float k )
+{
+    float h = clamp(0.5 + 0.5 * (d2 - d1) / k, 0.0, 1.0);
+    return mix(d2,d1, h) - k * h * (1.0 - h);
+}
+
+float opSmoothUnionSimple( float d1, float d2, float k ) {
+    float diff = d1 - d2;
+    float smoothFactor = sqrt(diff * diff + k * k);
+    return 0.5 * (d1 + d2 - smoothFactor);
+}
+
+float round(in float x) 
+{
+  return floor(x + 0.5);
 }
 
 void setCoordinates(out vec2 uv, out vec2 p, out vec2 uvMouse, out vec2 mouse)
@@ -48,22 +46,18 @@ void main() {
   vec2 uv, p, uvMouse, mouse;
   setCoordinates(uv, p, uvMouse, mouse);
 
-  float c = sdCircle(vec2(p.x - sin(u_time), p.y), 0.8);
-  float b = sdBox(p, vec2(1.0, 0.4));
+  float s = uvMouse.x * 0.2 + 0.1;
+  float repeatedX = p.x - s * round(p.x / s);
+  vec2 pr = vec2(repeatedX, p.y);
 
-  float sdUnion = min(c, b);
-  float sdSubtract = max(-c, b);
-  float sdIntersect = max(c, b);
-  float sdXor = max(min(c, b), -max(c, b));
+  float c = sdCircle(vec2(p.x - sin(u_time), p.y), 0.2);
+  float b = sdBox(pr, vec2(s * 0.2, 0.4));
 
-  float t = sdUnion;
-  if (uvMouse.x > 0.25) { t = sdSubtract; };
-  if (uvMouse.x > 0.5) { t = sdIntersect; };
-  if (uvMouse.x > 0.75) { t = sdXor; };
+  float sm = opSmoothUnion(c, b, uvMouse.y);
 
-  float f = uvMouse.y > 0.2 ? step(0.2 * uvMouse.y, t) : t;
+  float f = step(sm, 0.0);
 
-  vec3 color = uvMouse.y > 0.2 ? vec3(f) : pal(f, p1);
+  vec3 color = vec3(f);
 
   gl_FragColor = vec4(color,1.0);
 }
