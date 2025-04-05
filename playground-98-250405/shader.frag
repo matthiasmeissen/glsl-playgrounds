@@ -6,32 +6,18 @@ uniform vec2 u_resolution;
 uniform vec2 u_mouse;
 uniform float u_time;
 
+uniform sampler2D u_buffer0;
+uniform sampler2D u_buffer1;
+
+
 float sdCircle(in vec2 p, in float r)
 {
   return length(p) - r;
 }
 
-float sdBox(in vec2 p, in vec2 b)
+vec3 pal(in float t, in vec3 a, in vec3 b, in vec3 c, in vec3 d)
 {
-  vec2 d = abs(p) - b;
-  return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
-}
-
-float opSmoothUnion(in float d1, in float d2, in float k )
-{
-    float h = clamp(0.5 + 0.5 * (d2 - d1) / k, 0.0, 1.0);
-    return mix(d2,d1, h) - k * h * (1.0 - h);
-}
-
-float opSmoothUnionSimple( float d1, float d2, float k ) {
-    float diff = d1 - d2;
-    float smoothFactor = sqrt(diff * diff + k * k);
-    return 0.5 * (d1 + d2 - smoothFactor);
-}
-
-float round(in float x) 
-{
-  return floor(x + 0.5);
+  return a + b * cos(6.28318 * (c * t + d));
 }
 
 void setCoordinates(out vec2 uv, out vec2 p, out vec2 uvMouse, out vec2 mouse)
@@ -42,22 +28,43 @@ void setCoordinates(out vec2 uv, out vec2 p, out vec2 uvMouse, out vec2 mouse)
   mouse = (2.0 * u_mouse - u_resolution) / u_resolution.y; 
 }
 
+#if defined(BUFFER_0)
+
 void main() {
   vec2 uv, p, uvMouse, mouse;
   setCoordinates(uv, p, uvMouse, mouse);
 
-  float s = uvMouse.x * 0.2 + 0.1;
-  float repeatedX = p.x - s * round(p.x / s);
-  vec2 pr = vec2(repeatedX, p.y);
+  vec3 buffer = texture2D(u_buffer1, uv).rgb;
+  buffer *= 0.99;
 
-  float c = sdCircle(vec2(p.x - sin(u_time), p.y), 0.2);
-  float b = sdBox(pr, vec2(s * 0.2, 0.4));
+  float c1 = sdCircle(uv - abs(vec2(sin(u_time * 0.4), sin(u_time * 0.4))), 0.2);
+  float c2 = sdCircle(vec2(mod(uv.x, 0.2), uv.y) - abs(vec2(sin(u_time * 0.2), sin(u_time * 0.6))), 0.2);
+  float c3 = sdCircle(uv + sin(p + u_time), 0.4);
 
-  float sm = opSmoothUnion(c, b, uvMouse.y);
+  float c = min(c1, c2);
+  c = max(-c3, c);
 
-  float f = step(sm, 0.0);
-
-  vec3 color = vec3(f);
-
-  gl_FragColor = vec4(color,1.0);
+  buffer = mix(buffer, vec3(1.0), c);
+  gl_FragColor = vec4(buffer, 1.0);
 }
+
+#elif defined(BUFFER_1)
+
+void main() {
+  vec2 p = gl_FragCoord.xy / u_resolution;
+
+  vec3 buffer = texture2D(u_buffer0, p).rgb;
+  gl_FragColor = vec4(buffer, 1.0);
+}
+
+#else
+
+void main() {
+  vec2 p = gl_FragCoord.xy / u_resolution;
+    
+  vec3 b1 = texture2D(u_buffer1, p).rgb;
+  vec3 color = pal(clamp(b1.x, 0.0, p.y * 2.0) + u_time * 0.4, vec3(0.5 + u_time * 0.2, 0.5, 0.5), vec3(0.5, 0.5, 0.5), vec3(0.5, 0.5, 0.5), vec3(0.42, 0.62, 0.68));
+  gl_FragColor = vec4(color, 1.0);
+}
+
+#endif
